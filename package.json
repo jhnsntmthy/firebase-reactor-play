@@ -1,0 +1,21 @@
+{
+  "name": "fbplay",
+  "version": "0.0.0",
+  "description": "play with fb",
+  "main": "app.js",
+  "dependencies": {
+    "faker": "^3.1.0",
+    "firebase": "~3.6.2",
+    "hapi": "~16.0.1",
+    "lodash": "~4.17.2",
+    "md5": "^2.2.1",
+    "node-faker": "^0.2.0",
+    "rxjs": "^5.0.0-rc.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause"
+}

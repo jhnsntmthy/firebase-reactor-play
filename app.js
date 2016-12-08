@@ -31,15 +31,26 @@ const statsRef = firebase.database().ref('stats/people');
 //});
 
 // FIREBASE HELPERS for RxJS
-// const onRefEvent$ = (ref, evt) => {
+// const rxRefEvent$ = (ref, evt) => {
 //   return Rx.Observable.create((o) => ref.on(evt, (snap) => o.next(snap)));
 // }
 //
-// Firebase Interval with RxJS
+// Firebase createFakeUser Interval with RxJS
 // const myInterval = Rx.Observable.interval(5000);
 // myInterval.subscribe(v => {
 //   peopleRef.push(faker.helpers.contextualCard());
 // });
+//
+// The RxJS way of running the denormalization loop
+// Uses the same helper functions below with most
+// rxRefEvent$(peopleRef, 'child_added')
+//   .do(indexEmailRef)
+//   .do(cacheLatestUser)
+//   .do(cacheLatestUserAdded)
+//   .do(countPeopleThenCache)
+//   .map(s => s.val().username)
+//   .do(consolelogger)
+//   .subscribe()
 
 
 // FUNCTIONAL SIDE EFFECTS, for use with most.js or Rx.js
@@ -64,12 +75,14 @@ const countPeopleThenCache = () => peopleRef.once('value', cachePeopleCounter);
 const createFakePerson = () => peopleRef.push(faker.helpers.contextualCard());
 
 
-// most.js helpers to create a stream out of watching a collection
+// most.js helper to create a stream out of watching a collection
 const mostRefEvent$ = (ref, evt) => {
   let emitter = new EventEmitter();
   ref.on(evt, (snap) => emitter.emit(evt, snap))
   return most.fromEvent(evt, emitter)
 }
+// this one is pretty much the same as above, but the emitted stream 
+// needs to pluck the first element with a .map(e => e[0]) in the flow
 const moistRefEvent$ = (ref, evt) => {
   return most.fromEvent(evt, { 
     addListener: (type, listener) => ref.on(type, listener),
@@ -86,8 +99,7 @@ const run = () => {
   most.periodic(2000).forEach(createFakePerson);
 
   // Denormalize users and store stats with most.js
-  moistRefEvent$(peopleRef, 'child_added')
-    .map(params => params[0])
+  mostRefEvent$(peopleRef, 'child_added')
     .tap(indexEmailRef)
     .tap(cacheLatestUser)
     .tap(cacheLatestUserAdded)

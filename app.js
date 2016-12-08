@@ -49,4 +49,13 @@ myInterval.subscribe(v => {
   peopleRef.push(faker.helpers.contextualCard());
 });
 
+const db = firebase.database();
+const people = db.child('people'); 
+const query = people
+		.orderByChild('email')
+		.equalTo('smallboy33@manglass.com')
+		.limitTo(1);
+const logUser = (snap) => console.log(snap.val());
+query.on('value', logUser);
+
 

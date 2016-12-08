@@ -5,16 +5,11 @@ const firebase = require('firebase');
 const _ = require('lodash');
 const faker = require('faker');
 const Rx = require('rxjs/Rx');
+const most = require('most');
 const md5 = require('md5');
-
-var config = {
-  apiKey: "AIzaSyAiDeQB9B5Y9GrcBMhl_WX3znTKZN9_2C8",
-  authDomain: "first-429e7.firebaseapp.com",
-  databaseURL: "https://first-429e7.firebaseio.com",
-  storageBucket: "first-429e7.appspot.com",
-  messagingSenderId: "92529856761"
-};
-firebase.initializeApp(config);
+const EventEmitter = require('events');
+const fbconfig = require('./config-firebase');
+firebase.initializeApp(fbconfig);
 
 const peopleRef = firebase.database().ref('people');
 const emailRef = firebase.database().ref('lookups/emails');
@@ -50,12 +45,25 @@ myInterval.subscribe(v => {
 });
 
 const db = firebase.database();
-const people = db.child('people'); 
+const people = db.ref('people'); 
 const query = people
 		.orderByChild('email')
 		.equalTo('smallboy33@manglass.com')
-		.limitTo(1);
+		.limitToFirst(1);
 const logUser = (snap) => console.log(snap.val());
 query.on('value', logUser);
 
+const searchRefByValue$ = (ref, k, val) => {
+  let emitter = new EventEmitter();
+  ref.orderByChild(k)
+    .equalTo(val)
+    .limitToFirst(1)
+    .on('value', (snap) => emitter.emit('value', snap));
+  return most.fromEvent('value', emitter); 
+}
+
+searchRefByValue$(peopleRef, 'email', 'Hope.Schaden5.Bruen@yahoo.com')
+  .map(s => s.val())
+  .tap(s => console.log(s))
+  .drain()
 
